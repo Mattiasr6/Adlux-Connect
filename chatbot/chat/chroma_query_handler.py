@@ -20,7 +20,7 @@ def setup_chroma_client():
 
 def get_query_embedding(query):
     query = query.lower()
-    return model.encode([query])[0]
+    return model.encode([query])[0].tolist()
 
 
 def retrieve_documents(query, top_k=3):
