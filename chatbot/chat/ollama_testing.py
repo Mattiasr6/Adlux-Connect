@@ -1,3 +1,5 @@
+import os
+
 from langchain_ollama import OllamaLLM
 
 model = None
@@ -5,7 +7,10 @@ model = None
 
 def initialise_model():
     global model
-    model = OllamaLLM(model='llama3.2')
+    # Ollama corre en el host con GPU (ver OLLAMA_BASE_URL); la VM solo es
+    # cliente HTTP, por eso la URL sale del entorno y no va hardcodeada.
+    base_url = os.environ.get('OLLAMA_BASE_URL', 'http://localhost:11434')
+    model = OllamaLLM(model='llama3.2', base_url=base_url)
 
 
 def generate_response(user_query, retrieved_data):
