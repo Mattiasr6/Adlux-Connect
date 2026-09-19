@@ -1,3 +1,40 @@
+> **Nota del fork (Programación IV):** fork de trabajo sobre el proyecto original.
+> Aporte propio: traducción, guía de instalación reproducible, comando de indexado,
+> modo claro/oscuro, Bootstrap, i18n ES/EN y ciclo feedback→FAQ. El README original sigue debajo.
+
+## Instalación y ejecución
+
+### Requisitos
+
+- Python 3.11 con `venv`
+- Ollama con el modelo `llama3.2` (recomendado: en una máquina con GPU NVIDIA)
+- ~2 GB libres para el venv; el modelo de embeddings (~420 MB) se descarga solo la primera vez
+
+### Puesta en marcha
+
+```bash
+git clone https://github.com/Mattiasr6/Adlux-Connect.git
+cd Adlux-Connect
+python3 -m venv venv
+./venv/bin/pip install -r requirements.txt
+cd chatbot
+../venv/bin/python manage.py migrate
+../venv/bin/python manage.py createsuperuser
+../venv/bin/python manage.py indexar_faq   # semilla FAQ, idempotente
+OLLAMA_BASE_URL=http://TU_HOST_OLLAMA:11434 ../venv/bin/python manage.py runserver
+```
+
+- App: http://localhost:8000/ (login) → `/chat/` → `/admin/`
+- Sin `OLLAMA_BASE_URL`, el chat busca Ollama en `localhost:11434`
+- Usuario dev de ejemplo: `admin` / `admin123` (cambiar con `manage.py changepassword admin`)
+
+### Arquitectura
+
+- Django + ChromaDB + embeddings (`all-mpnet-base-v2`, CPU) en esta máquina
+- Inferencia LLM en el host con GPU, vía API HTTP de Ollama (`OLLAMA_BASE_URL`)
+- `Interaction.feedback` (1–4) persiste la calificación de cada respuesta para mejora continua
+
+---
 # Adlux-Connect
 
 ## Work in Progress
