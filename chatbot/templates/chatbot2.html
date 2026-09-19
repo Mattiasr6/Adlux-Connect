@@ -1,412 +1,345 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-
-<head>
-    <meta charset="utf-8">
-    <title>Adlux Connect</title>
-    
-    {% load static %}
-    {% csrf_token %}
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="{% static 'index2.css' %}">
-    <link rel="stylesheet" href="../static/index2.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Google Fonts Link -->
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-</head>
-
-<body class="light-mode">
-    <!-- Chats container -->
-    <section class="sidebar-section">
-        <div class="sidebar">
-            <button class="toggle-btn" onclick="toggleSidebar()">⮜</button>
-            
-            <!--
-            <a href="{% url 'login' %}" class="button">Login</a>
-            <a href="{% url 'logout' %}" class="button">Logout</a>
-            <button class="login-logout-btn" href="{% url 'login' %}">Login</button>
-            <button class="login-logout-btn" href="{% url 'logout' %}">Logout</button>
-            -->
-
-            <ul class="menu fixed">
-                <li><a href="{% url 'logout' %}"><i class="fa-solid fa-house"></i><span>Logout</span></a></li>
-            </ul>
-            <button  id="new-chat-btn">+ New chat</button>
-            <ul class="menu dynamic"></ul>
-
-        </div>
-    </section>
-
-    <div class="chat-container"></div>
-      
-        <!-- Typing container -->
-    <div class="typing-container">
-        <div class="typing-content">
-            <div class="typing-textarea">
-                <textarea id="chat-input" spellcheck="false" placeholder="Enter a prompt here" required></textarea>
-                <span id="send-btn" class="material-symbols-rounded">send</span>
-            </div>
-            <div class="typing-controls">
-                    <span id="theme-btn" class="material-symbols-rounded">light_mode</span>
-                    <span id="delete-btn" class="material-symbols-rounded">delete</span>
-            </div>
-        </div>
+{% extends 'base.html' %}
+{% load static %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'index2.css' %}">{% endblock %}
+{% block title %}Chat - Adlux-Connect{% endblock %}
+{% block content %}
+{% csrf_token %}
+<div class="row">
+  <!-- Sidebar: misma estructura y clases que usa el JS (.sidebar, .menu, .toggle-btn) -->
+  <section class="sidebar-section col-md-3">
+    <div class="sidebar">
+      <button class="toggle-btn btn btn-sm btn-outline-secondary" onclick="toggleSidebar()">⮜</button>
+      <ul class="menu fixed list-unstyled">
+        <li><a href="{% url 'logout' %}">Logout</a></li>
+      </ul>
+      <button id="new-chat-btn" class="btn btn-success btn-sm w-100 my-2">+ New chat</button>
+      <ul class="menu dynamic list-group"></ul>
     </div>
-    <!-- JavaScript -->
+  </section>
 
-    <script id="interaction-data" type="application/json">
-    </script>
-    <script>
-        const chatInput = document.querySelector("#chat-input");
-        const sendButton = document.querySelector("#send-btn");
-        const chatContainer = document.querySelector(".chat-container");
-        const themeButton = document.querySelector("#theme-btn");
-        const deleteButton = document.querySelector("#delete-btn");
-        const newChatButton = document.querySelector("#new-chat-btn");
-        const initialInputHeight = chatInput.scrollHeight;
-        var interactionList = JSON.parse('{{ interactions|escapejs }}');
+  <!-- Columna de chat -->
+  <div class="col-md-9 d-flex flex-column" style="min-height: 70vh;">
+    <div class="chat-container flex-grow-1 overflow-auto border rounded p-3 mb-3" style="max-height: 65vh;"></div>
 
-        let userText = null;
-    
-        console.log('loaded..');
+    <div class="typing-container">
+      <div class="input-group">
+        <textarea id="chat-input" class="form-control" placeholder="Enter a prompt here" rows="1" required></textarea>
+        <button id="send-btn" class="btn btn-primary" type="button">Enviar ➤</button>
+      </div>
+      <div class="mt-2">
+        <button id="delete-btn" class="btn btn-sm btn-outline-danger" type="button">🗑 Limpiar vista</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-        newChatButton.addEventListener("click", function() {
-            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            fetch("new_chat", {
-                method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrftoken,  // Send CSRF token
-                    },
-                    body: JSON.stringify({}) // Optional data, if needed in request body
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data.status);  // Shows 'success' in the console
-                location.reload();  // Reloads the page
-            })
-            .catch(error => {
-                console.error("Error fetching data:", error);
-            });
-        });
+<script>
+    const chatInput = document.querySelector("#chat-input");
+    const sendButton = document.querySelector("#send-btn");
+    const chatContainer = document.querySelector(".chat-container");
+    const deleteButton = document.querySelector("#delete-btn");
+    const newChatButton = document.querySelector("#new-chat-btn");
+    const initialInputHeight = chatInput.scrollHeight;
+    var interactionList = JSON.parse('{{ interactions|escapejs }}');
 
-        function handleMenuItemClick(dataItem) {
-            // console.log("Clicked item:", dataItem);
+    let userText = null;
 
-            fetch('get_chat_history', {
-                method: 'POST',
+    const defaultText = `<div class="default-text text-center py-5">
+                            <h1>Apollo Adlux Chatbot</h1>
+                            <p class="lead">Hy {{user}} What can I help with?</p>
+                        </div>`;
+
+    newChatButton.addEventListener("click", function() {
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch("new_chat", {
+            method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken(), // Add CSRF token for security
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken,  // Send CSRF token
                 },
-                body: JSON.stringify({ data: dataItem }) // Pass the clicked data to the backend
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Response from backend:", data);
+                body: JSON.stringify({}) // Optional data, if needed in request body
+        })
+        .then(response => response.json())
+        .then(data => {
+            location.reload();  // Reloads the page
+        })
+        .catch(error => {
+            console.error("Error fetching data:", error);
+        });
+    });
 
-                if (data.redirect_url) {
-                    window.location.href = data.redirect_url; // Navigate to the new view
-                } else if (data.status === 'success') {
-                    // Check if interactions exist and log it
-                    if (data.interactions) {
-                        chatContainer.innerHTML ='';
-                        // console.log("Interactions:", data.interactions);
-                        interactions = JSON.parse(data.interactions)
-                        interactions.forEach(interaction => {
-                            // console.log("User Message:", interaction.user_message);
-                            // console.log("Bot Response:", interaction.bot_response);
-
-                            const html = `
-                            <div class="chat-content">
-                                <div class="chat-details">
-                                    <p>${interaction.user_message}</p>
-                                </div>
-                            </div>`;
-
-                        // Assuming createChatElement returns a new HTML element
+    function handleMenuItemClick(dataItem) {
+        fetch('get_chat_history', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(), // Add CSRF token for security
+            },
+            body: JSON.stringify({ data: dataItem }) // Pass the clicked data to the backend
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url; // Navigate to the new view
+            } else if (data.status === 'success') {
+                if (data.interactions) {
+                    chatContainer.innerHTML ='';
+                    interactions = JSON.parse(data.interactions)
+                    interactions.forEach(interaction => {
+                        const html = `<div class="d-flex justify-content-end mb-2">
+                                        <div class="card bg-primary text-white" style="max-width: 85%;">
+                                          <div class="card-body py-2 px-3"><p class="mb-0">${interaction.user_message}</p></div>
+                                        </div>
+                                      </div>`;
                         const outgoingChatDiv = createChatElement(html, "outgoing");
-
-                        // Remove the default text, if it exists
                         chatContainer.querySelector(".default-text")?.remove();
-
-                        // Append the new chat div to the container
                         chatContainer.appendChild(outgoingChatDiv);
-
-                        // Scroll to the bottom of the chat container
                         chatContainer.scrollTo(0, chatContainer.scrollHeight);
                         showBotResponse(interaction.bot_response)
-                    
-                        // loadDataFromLocalstorage();   --> uncomment this for debug purpose
-                        sendButton.addEventListener("click", handleOutgoingChat);
-                        });
-                    } else {
-                        console.error("No interactions found. i dont know why");
-                    }
+                    });
                 } else {
-                    console.error("Action failed:", data.message);
+                    console.error("No interactions found.");
                 }
-            })
-            .catch(error => console.error("Error handling menu item click:", error));
-        }
+            } else {
+                console.error("Action failed:", data.message);
+            }
+        })
+        .catch(error => console.error("Error handling menu item click:", error));
+    }
 
-        function updateSidebarMenu(dummyData) {
-            const sidebarMenu = document.querySelector('.sidebar .menu.dynamic');
-            
-            // Ensure sidebar items are cleared and updated with fetched data
-            sidebarMenu.innerHTML = '';  // Clear existing menu items
+    function updateSidebarMenu(dummyData) {
+        const sidebarMenu = document.querySelector('.sidebar .menu.dynamic');
 
-            // Populate the sidebar with the fetched dummy data
-            dummyData.forEach(item => {
-                const listItem = document.createElement('li');
-                const anchor = document.createElement('a');
-                anchor.href = '#';
-                anchor.textContent = item;  // Set text to each data item
-                listItem.appendChild(anchor);
-                sidebarMenu.appendChild(listItem);
+        // Ensure sidebar items are cleared and updated with fetched data
+        sidebarMenu.innerHTML = '';  // Clear existing menu items
 
-                anchor.addEventListener('click', () => {
+        // Populate the sidebar with the fetched dummy data
+        dummyData.forEach(item => {
+            const listItem = document.createElement('li');
+            const anchor = document.createElement('a');
+            anchor.href = '#';
+            anchor.textContent = item;  // Set text to each data item
+            anchor.classList.add('list-group-item', 'list-group-item-action', 'text-truncate');
+            listItem.appendChild(anchor);
+            sidebarMenu.appendChild(listItem);
+
+            anchor.addEventListener('click', () => {
                 handleMenuItemClick(item); // Send item to the backend when clicked
-        });
             });
-        }
-
-        function fetchSidebarData() {
-            console.log('Fetching sidebar data...');
-
-            // Use a GET request to fetch data when the sidebar is open
-            fetch('fetch_sidebar_data', {
-                method: 'GET',  // Use GET for fetching dummy data
-                headers: {
-                    'X-CSRFToken': getCSRFToken(),  // Add CSRF token for security
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.dummyData) {
-                    updateSidebarMenu(data.dummyData);
-                } else {
-                    console.error("No data received");
-                }
-            })
-            .catch(error => console.error("Error fetching data: ", error));
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            const toggleBtn = document.querySelector('.toggle-btn');
-
-            sidebar.classList.toggle('collapsed');  // Toggling the sidebar class
-    
-            // Update the toggle button arrow direction
-            if (sidebar.classList.contains('collapsed')) {
-                toggleBtn.innerHTML = '⮞'; // Point right when closed
-            } else {
-                toggleBtn.innerHTML = '⮜'; // Point left when open
-
-                // Fetch  data when the sidebar is opened
-                fetchSidebarData();
-            }
-            
-            // Ensure the sidebar items are hidden when collapsed
-            const sidebarMenu = sidebar.querySelector('.menu');
-            sidebarMenu.style.display = sidebar.classList.contains('collapsed') ? 'none' : 'block';
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check the initial state of the sidebar on page load
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarMenu = sidebar.querySelector('.menu');
-
-            // If sidebar is already open, fetch and display data
-            if (!sidebar.classList.contains('collapsed')) {
-                fetchSidebarData();
-            } else {
-                sidebarMenu.style.display = 'none';  // Hide the menu items when collapsed
-            }
         });
+    }
 
-        const loadDataFromLocalstorage = () => {
-            // Load saved chats and theme from local storage and apply/add on the page
-            const themeColor = localStorage.getItem("themeColor");
-            document.body.classList.toggle("light-mode", themeColor === "light_mode");
-            themeButton.innerText = document.body.classList.contains("light-mode") ? "dark_mode" : "light_mode";
-    
-            const defaultText = `<div class="default-text" style="background-image: url('images/us.jpg'); background-size: cover; background-repeat: no-repeat;">
-                                    <h1>Apollo Adlux Chatbot</h1>
-                                    <h2>Hy {{user}} What can I help with?<br></h2>
-                                </div>`;
-    
-            chatContainer.innerHTML = localStorage.getItem("all-chats") || defaultText;
-            chatContainer.scrollTo(0, chatContainer.scrollHeight); // Scroll to bottom of the chat container
-        };
-    
-        function getCSRFToken() {
-            const cookies = document.cookie.split(';');
-            for (let cookie of cookies) {
-                cookie = cookie.trim();
-                if (cookie.startsWith('csrftoken=')) {
-                    return cookie.substring('csrftoken='.length, cookie.length);
-                }
+    function fetchSidebarData() {
+        // Use a GET request to fetch data when the sidebar is open
+        fetch('fetch_sidebar_data', {
+            method: 'GET',  // Use GET for fetching dummy data
+            headers: {
+                'X-CSRFToken': getCSRFToken(),  // Add CSRF token for security
             }
-            return '';
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.dummyData) {
+                updateSidebarMenu(data.dummyData);
+            } else {
+                console.error("No data received");
+            }
+        })
+        .catch(error => console.error("Error fetching data: ", error));
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const toggleBtn = document.querySelector('.toggle-btn');
+
+        sidebar.classList.toggle('collapsed');  // Toggling the sidebar class
+
+        // Update the toggle button arrow direction
+        if (sidebar.classList.contains('collapsed')) {
+            toggleBtn.innerHTML = '⮞'; // Point right when closed
+        } else {
+            toggleBtn.innerHTML = '⮜'; // Point left when open
+
+            // Fetch data when the sidebar is opened
+            fetchSidebarData();
         }
-    
-        const createChatElement = (content, ...classNames) => {
-            // Create new div and apply multiple class names by spreading classNames
-            const chatDiv = document.createElement("div");
-            chatDiv.classList.add("chat", ...classNames); // Spread classNames into individual tokens
-            chatDiv.innerHTML = content;
-            return chatDiv; // Return the created chat div
-        };                                                                                  
-    
-        const showBotResponse = (responseText) => {
-            const html = `<div class="chat-content">
-                            <div class="chat-details">
-                                <img src="images/chatbot.jpg" alt="chatbot-img">
-                                <p>${responseText}</p>
+
+        // Ensure the sidebar items are hidden when collapsed
+        const sidebarMenu = sidebar.querySelector('.menu');
+        sidebarMenu.style.display = sidebar.classList.contains('collapsed') ? 'none' : 'block';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check the initial state of the sidebar on page load
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarMenu = sidebar.querySelector('.menu');
+
+        // If sidebar is already open, fetch and display data
+        if (!sidebar.classList.contains('collapsed')) {
+            fetchSidebarData();
+        } else {
+            sidebarMenu.style.display = 'none';  // Hide the menu items when collapsed
+        }
+    });
+
+    const loadDefaultView = () => {
+        chatContainer.innerHTML = defaultText;
+        chatContainer.scrollTo(0, chatContainer.scrollHeight);
+    };
+
+    function getCSRFToken() {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith('csrftoken=')) {
+                return cookie.substring('csrftoken='.length, cookie.length);
+            }
+        }
+        return '';
+    }
+
+    const createChatElement = (content, ...classNames) => {
+        // Create new div and apply multiple class names by spreading classNames
+        const chatDiv = document.createElement("div");
+        chatDiv.classList.add("chat", ...classNames); // Spread classNames into individual tokens
+        chatDiv.innerHTML = content;
+        return chatDiv; // Return the created chat div
+    };
+
+    const copyResponse = (copyBtn) => {
+        // Copy the text content of the response to the clipboard
+        const responseTextElement = copyBtn.parentElement.querySelector("p");
+        navigator.clipboard.writeText(responseTextElement.textContent);
+        copyBtn.textContent = "✓ copiado";
+        setTimeout(() => copyBtn.textContent = "copiar", 1000);
+    };
+
+    const showBotResponse = (responseText) => {
+        const html = `<div class="d-flex mb-2">
+                        <span class="fs-4 me-2">🤖</span>
+                        <div class="card flex-grow-1">
+                          <div class="card-body py-2 px-3">
+                            <p class="mb-0">${responseText}</p>
+                            <button class="btn btn-sm btn-link p-0" onclick="copyResponse(this)">copiar</button>
+                          </div>
+                        </div>
+                      </div>`;
+        const botResponseDiv = createChatElement(html, "incoming");
+        chatContainer.appendChild(botResponseDiv);
+        chatContainer.scrollTo(0, chatContainer.scrollHeight);
+    };
+
+    const showTypingAnimation = () => {
+        // Display the typing animation while waiting for the server
+        const html = `<div class="d-flex mb-2">
+                        <span class="fs-4 me-2">🤖</span>
+                        <div class="card flex-grow-1">
+                          <div class="card-body py-2 px-3">
+                            <div class="typing-animation">
+                                <div class="typing-dot" style="--delay: 0.2s"></div>
+                                <div class="typing-dot" style="--delay: 0.3s"></div>
+                                <div class="typing-dot" style="--delay: 0.4s"></div>
                             </div>
-                            <span onclick="copyResponse(this)" class="material-symbols-rounded">content_copy</span>
-                        </div>`;
-            const botResponseDiv = createChatElement(html, "incoming");
-            chatContainer.appendChild(botResponseDiv);
-            chatContainer.scrollTo(0, chatContainer.scrollHeight);
-        };
-    
-        const showTypingAnimation = () => {
-            // Display the typing animation and call the getChatResponse function
-            const html = `<div class="chat-content">
-                            <div class="chat-details">
-                                <img src="images/chatbot.jpg" alt="chatbot-img">
-                                <div class="typing-animation">
-                                    <div class="typing-dot" style="--delay: 0.2s"></div>
-                                    <div class="typing-dot" style="--delay: 0.3s"></div>
-                                    <div class="typing-dot" style="--delay: 0.4s"></div>
-                                </div>
-                            <span onclick="copyResponse(this)" class="material-symbols-rounded">content_copy</span>
+                          </div>
+                        </div>
+                      </div>`;
+        const incomingChatDiv = createChatElement(html, "incoming", "typing");
+        chatContainer.appendChild(incomingChatDiv);
+        chatContainer.scrollTo(0, chatContainer.scrollHeight);
+    };
+
+    const handleOutgoingChat = () => {
+        userText = chatInput.value.trim();
+        if (!userText) return;
+
+        const html = `<div class="d-flex justify-content-end mb-2">
+                        <div class="card bg-primary text-white" style="max-width: 85%;">
+                          <div class="card-body py-2 px-3">
+                            <p class="mb-0">${userText}</p>
+                          </div>
+                        </div>
+                      </div>`;
+        const outgoingChatDiv = createChatElement(html, "outgoing");
+        chatContainer.querySelector(".default-text")?.remove();
+        chatContainer.appendChild(outgoingChatDiv);
+        chatContainer.scrollTo(0, chatContainer.scrollHeight);
+
+        chatInput.value = "";
+        chatInput.style.height = `${initialInputHeight}px`;
+
+        showTypingAnimation();
+
+        sendMessage(userText);
+    };
+
+    const sendMessage = (message) => {
+        // Simulate typing animation by removing it after some time
+        const typingDiv = document.querySelector(".typing");
+
+        fetch('/chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken() // Adding CSRF token from cookies
+            },
+            body: JSON.stringify({ message })
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                // Remove typing animation
+                typingDiv?.remove();
+
+                // Show the bot's response
+                showBotResponse(data.response);
+            })
+            .catch(error => {
+                typingDiv?.remove();
+                console.error('Error:', error);
+                showBotResponse("Sorry, something went wrong. Please try again.");
+            });
+    };
+
+    deleteButton.addEventListener("click", () => {
+        // Limpia solo la vista local (el historial del servidor se conserva).
+        if (confirm("Limpiar la vista actual? El historial guardado no se borra.")) {
+            loadDefaultView();
+        }
+    });
+
+    chatInput.addEventListener("input", () => {
+        chatInput.style.height = `${initialInputHeight}px`;
+        chatInput.style.height = `${chatInput.scrollHeight}px`;
+    });
+
+    chatInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
+            e.preventDefault();
+            handleOutgoingChat();
+        }
+    });
+
+    // Render inicial: historial del servidor o vista por defecto.
+    // (Registro único del envío: antes se registraba una vez por cada
+    // mensaje del historial, duplicando los POST.)
+    if (interactionList.length > 0) {
+        interactionList.forEach(interaction => {
+            const html = `<div class="d-flex justify-content-end mb-2">
+                            <div class="card bg-primary text-white" style="max-width: 85%;">
+                              <div class="card-body py-2 px-3"><p class="mb-0">${interaction.user_message}</p></div>
                             </div>
-                        </div>`;
-            // Create an incoming chat div with typing animation
-            const incomingChatDiv = createChatElement(html, "incoming", "typing");
-            chatContainer.appendChild(incomingChatDiv);
-            chatContainer.scrollTo(0, chatContainer.scrollHeight);
-        };
-    
-        const handleOutgoingChat = () => {
-            userText = chatInput.value.trim(); 
-            if (!userText) return;
-    
-            const html = `<div class="chat-content" >
-                            <div class="chat-details">
-                                <img src="images/user.jpg" alt="user-img">
-                                <p>${userText}</p>
-                            </div>
-                        </div>`;
+                          </div>`;
             const outgoingChatDiv = createChatElement(html, "outgoing");
             chatContainer.querySelector(".default-text")?.remove();
             chatContainer.appendChild(outgoingChatDiv);
             chatContainer.scrollTo(0, chatContainer.scrollHeight);
-    
-            chatInput.value = ""; 
-            chatInput.style.height = `${initialInputHeight}px`;
-    
-            showTypingAnimation(); 
-    
-            sendMessage(userText);
-        };
-    
-        const sendMessage = (message) => {
-            console.log('requesting to server....0');
-            // Simulate typing animation by removing it after some time
-            const typingDiv = document.querySelector(".typing");
-    
-            fetch('/chat/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken() // Adding CSRF token from cookies
-                },
-                body: JSON.stringify({ message })
-            })
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(data => {
-                    // Remove typing animation
-                    typingDiv?.remove();
-    
-                    // Show the bot's response
-                    showBotResponse(data.response);
-                })
-                .catch(error => {
-                    typingDiv?.remove();
-                    console.error('Error:', error);
-                    showBotResponse("Sorry, something went wrong. Please try again.");
-                });
-        };
-    
-        deleteButton.addEventListener("click", () => {
-            if (confirm("Are you sure you want to delete all the chats?")) {
-                localStorage.removeItem("all-chats");
-                loadDataFromLocalstorage();
-            }
+            showBotResponse(interaction.bot_response)
         });
-    
-        themeButton.addEventListener("click", () => {
-            document.body.classList.toggle("light-mode");
-            localStorage.setItem("themeColor", themeButton.innerText);
-            themeButton.innerText = document.body.classList.contains("light-mode") ? "dark_mode" : "light_mode";
-        });
-    
-        chatInput.addEventListener("input", () => {
-            chatInput.style.height = `${initialInputHeight}px`;
-            chatInput.style.height = `${chatInput.scrollHeight}px`;
-        });
-    
-        chatInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
-                e.preventDefault();
-                handleOutgoingChat();
-            }
-        });
-
-        // Check if interactionList has any data
-        if (interactionList.length > 0) {
-            // Loop through each interaction and render chat messages
-            interactionList.forEach(interaction => {
-                console.log(interaction.user_message); // This should now print user_message in the console
-
-                const html = `
-                    <div class="chat-content">
-                        <div class="chat-details">
-                            <p>${interaction.user_message}</p>
-                        </div>
-                    </div>`;
-
-                // Assuming createChatElement returns a new HTML element
-                const outgoingChatDiv = createChatElement(html, "outgoing");
-
-                // Remove the default text, if it exists
-                chatContainer.querySelector(".default-text")?.remove();
-
-                // Append the new chat div to the container
-                chatContainer.appendChild(outgoingChatDiv);
-
-                // Scroll to the bottom of the chat container
-                chatContainer.scrollTo(0, chatContainer.scrollHeight);
-                showBotResponse(interaction.bot_response)
-            });
-            
-            // loadDataFromLocalstorage();   --> uncomment this for debug purpose
-            sendButton.addEventListener("click", handleOutgoingChat);
-        }else{
-            loadDataFromLocalstorage();
-            sendButton.addEventListener("click", handleOutgoingChat);
-        }
-    </script>    
-</body>
-</html>
+    } else {
+        loadDefaultView();
+    }
+    sendButton.addEventListener("click", handleOutgoingChat);
+</script>
+{% endblock %}
