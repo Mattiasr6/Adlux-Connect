@@ -34,3 +34,6 @@ __pycache__/
 
 # Excepcion: la plantilla de entorno SI se versiona
 !.env.example
+
+# Compilados de traducción (se regeneran con compilemessages)
+*.mo

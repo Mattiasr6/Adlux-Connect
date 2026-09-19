@@ -19,6 +19,7 @@ python3 -m venv venv
 ./venv/bin/pip install -r requirements.txt
 cd chatbot
 ../venv/bin/python manage.py migrate
+../venv/bin/python manage.py compilemessages   # compila traducciones (.mo, no se versiona)
 ../venv/bin/python manage.py createsuperuser
 ../venv/bin/python manage.py indexar_faq   # semilla FAQ, idempotente
 OLLAMA_BASE_URL=http://TU_HOST_OLLAMA:11434 ../venv/bin/python manage.py runserver
