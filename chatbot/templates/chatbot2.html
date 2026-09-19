@@ -96,7 +96,7 @@
                         chatContainer.querySelector(".default-text")?.remove();
                         chatContainer.appendChild(outgoingChatDiv);
                         chatContainer.scrollTo(0, chatContainer.scrollHeight);
-                        showBotResponse(interaction.bot_response, interaction.interaction_id, interaction.feedback, null)
+            showBotResponse(interaction.bot_response, interaction.interaction_id, interaction.feedback, null, interaction.response_time || null)
                     });
                 } else {
                     console.error("No interactions found.");
@@ -216,8 +216,9 @@
         setTimeout(() => copyBtn.textContent = "{% trans "copy" %}", 1000);
     };
 
-    const showBotResponse = (responseText, interactionId, feedback, fuente) => {
+    const showBotResponse = (responseText, interactionId, feedback, fuente, tiempo) => {
         const fid = interactionId || '';
+        const tiempoCorto = tiempo ? String(tiempo).split('.')[0] : '';
         const html = `<div class="d-flex mb-2">
                         <span class="fs-4 me-2">🤖</span>
                         <div class="card flex-grow-1">
@@ -225,6 +226,7 @@
                             <p class="mb-0">${responseText}</p>
                             <button class="btn btn-sm btn-link p-0" onclick="copyResponse(this)">{% trans "copy" %}</button>
                             ${fuente ? `<div><span class="badge text-bg-secondary" title="{% trans "Document backing this answer" %}">{% trans "Source:" %} ${fuente}</span></div>` : ''}
+                            ${tiempoCorto ? `<div class="text-muted small">⏱ ${tiempoCorto}</div>` : ''}
                             <div class="btn-group btn-group-sm ms-2" role="group" aria-label="{% trans "Rate this answer" %}" data-feedback-group="${fid}">
                               <button type="button" class="btn btn-outline-secondary" data-voto="1" title="{% trans "Bad" %}" onclick="votar('${fid}', 1)">1</button>
                               <button type="button" class="btn btn-outline-secondary" data-voto="2" title="{% trans "Regular" %}" onclick="votar('${fid}', 2)">2</button>
@@ -331,12 +333,12 @@
                 typingDiv?.remove();
 
                 // Show the bot's response
-                showBotResponse(data.response, data.interaction_id, null, data.fuente || null);
+                showBotResponse(data.response, data.interaction_id, null, data.fuente || null, data.response_time || null);
             })
             .catch(error => {
                 typingDiv?.remove();
                 console.error('Error:', error);
-                showBotResponse("{% trans "Sorry, something went wrong. Please try again." %}", null, null, null);
+                showBotResponse("{% trans "Sorry, something went wrong. Please try again." %}", null, null, null, null);
             });
     };
 
