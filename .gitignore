@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+pip-log.txt
+
+# Django
+*.sqlite3
+*.sqlite3-journal
+staticfiles/
+media/
+
+# ChromaDB (se regenera con el comando de indexado, no se versiona)
+chatbot/appollo_chatbot_chroma/
+chatbot/appollo_chatbot_chroma2/
+chatbot/chat/appollo_chatbot_chroma/
+chatbot/chat/appollo_chatbot_chroma2/
+
+# Entorno y secretos
+.env
+.env.*
+
+# Logs y sistema
+*.log
+.DS_Store
+Thumbs.db
