@@ -1,0 +1,9 @@
+[
+  {"id": "semilla_0", "question": "What is Adlux-Connect?", "answer": "Adlux-Connect is a RAG chatbot built with Django and Ollama. It answers questions using documents stored in ChromaDB and lets users rate each answer."},
+  {"id": "semilla_1", "question": "Where does the language model run?", "answer": "The language model (llama3.2) runs on the host machine, which has an NVIDIA RTX 2060 GPU. The virtual machine only acts as an HTTP client through the OLLAMA_BASE_URL setting."},
+  {"id": "semilla_2", "question": "How can I rate an answer?", "answer": "Each answer can be rated from 1 to 4 (Bad, Average, Good, Excellent). The rating is stored in the Interaction record together with the question and the answer."},
+  {"id": "semilla_3", "question": "Which vector database does the project use?", "answer": "The project uses ChromaDB in persistent mode. The main collection is called hospital_qanda2 and stores embedded questions with their answers."},
+  {"id": "semilla_4", "question": "How are new documents indexed?", "answer": "Run: python manage.py indexar_faq --archivo chat/data/faq_semilla.json. The command is idempotent: it skips ids that already exist in the collection."},
+  {"id": "semilla_5", "question": "Which embedding model is used?", "answer": "The all-mpnet-base-v2 model from sentence-transformers, running on CPU inside the virtual machine."},
+  {"id": "semilla_6", "question": "How do I create a user account?", "answer": "Use the signup page, or from the terminal run: python manage.py createsuperuser and follow the prompts."}
+]
