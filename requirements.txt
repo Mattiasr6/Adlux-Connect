@@ -6,6 +6,9 @@ Django==4.2.16
 djangorestframework==3.15.2
 django-cors-headers==4.3.1
 
+# Configuración por entorno (se usa en settings.py y ya venía instalado)
+python-dotenv==1.2.3
+
 # Cliente del LLM: Ollama corre en el host (100.78.144.4, RTX 2060).
 # La VM solo es cliente HTTP, no necesita GPU ni modelos locales.
 langchain-core==0.2.41

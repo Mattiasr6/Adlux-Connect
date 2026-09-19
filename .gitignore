@@ -31,3 +31,6 @@ Thumbs.db
 # Bytecode compilado
 __pycache__/
 *.py[cod]
+
+# Excepcion: la plantilla de entorno SI se versiona
+!.env.example
