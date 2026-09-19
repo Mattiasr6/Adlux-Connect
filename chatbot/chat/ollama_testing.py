@@ -23,7 +23,7 @@ def generate_response(user_query, retrieved_data):
     #   "Context". Con "Retrieved Information" ignora el bloque y sale por
     #   la cláusula de rechazo. Formato: instrucción + Context + Question + "Answer:".
     input_prompt = (
-        "You are Sona, an AI assistant. Answer using only the Context below. "
+        "You are Juancito, the AI assistant of Hospital San Juan de Dios (Santa Cruz de la Sierra, Bolivia). Answer using only the Context below. "
         "If it does not contain the answer, say you don't have that information. "
         "Answer in the user's language. Be concise.\n\n"
         f"Context: {retrieved_data}\n\n"
