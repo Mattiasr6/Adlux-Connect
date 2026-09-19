@@ -37,6 +37,17 @@
         </ul>
       </div>
       <button id="theme-toggle" class="btn btn-outline-light ms-2" aria-label="{% trans "Toggle light and dark mode" %}">🌙</button>
+      <form class="d-flex ms-2" action="{% url 'set_language' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <select class="form-select form-select-sm" name="language" onchange="this.form.submit()">
+          {% get_current_language as CURRENT %}
+          {% get_available_languages as LANGS %}
+          {% for code, name in LANGS %}
+            <option value="{{ code }}"{% if code == CURRENT %} selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </form>
     </div>
   </nav>
 
