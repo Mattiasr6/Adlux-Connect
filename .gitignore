@@ -27,3 +27,7 @@ chatbot/chat/appollo_chatbot_chroma2/
 *.log
 .DS_Store
 Thumbs.db
+
+# Bytecode compilado
+__pycache__/
+*.py[cod]
