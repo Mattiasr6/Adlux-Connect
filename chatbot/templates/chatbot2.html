@@ -93,7 +93,7 @@
                         chatContainer.querySelector(".default-text")?.remove();
                         chatContainer.appendChild(outgoingChatDiv);
                         chatContainer.scrollTo(0, chatContainer.scrollHeight);
-            showBotResponse(interaction.bot_response, interaction.interaction_id, interaction.feedback)
+            showBotResponse(interaction.bot_response, interaction.interaction_id, interaction.feedback, null)
                     });
                 } else {
                     console.error("No interactions found.");
@@ -212,7 +212,7 @@
         setTimeout(() => copyBtn.textContent = "copiar", 1000);
     };
 
-    const showBotResponse = (responseText, interactionId, feedback) => {
+    const showBotResponse = (responseText, interactionId, feedback, fuente) => {
         const fid = interactionId || '';
         const html = `<div class="d-flex mb-2">
                         <span class="fs-4 me-2">🤖</span>
@@ -220,6 +220,7 @@
                           <div class="card-body py-2 px-3">
                             <p class="mb-0">${responseText}</p>
                             <button class="btn btn-sm btn-link p-0" onclick="copyResponse(this)">copiar</button>
+                            ${fuente ? `<div><span class="badge text-bg-secondary" title="Documento que respaldó esta respuesta">Fuente: ${fuente}</span></div>` : ''}
                             <div class="btn-group btn-group-sm ms-2" role="group" aria-label="Calificar respuesta" data-feedback-group="${fid}">
                               <button type="button" class="btn btn-outline-secondary" data-voto="1" title="Mala" onclick="votar('${fid}', 1)">1</button>
                               <button type="button" class="btn btn-outline-secondary" data-voto="2" title="Regular" onclick="votar('${fid}', 2)">2</button>
@@ -326,12 +327,12 @@
                 typingDiv?.remove();
 
                 // Show the bot's response
-                showBotResponse(data.response, data.interaction_id, null);
+                showBotResponse(data.response, data.interaction_id, null, data.fuente || null);
             })
             .catch(error => {
                 typingDiv?.remove();
                 console.error('Error:', error);
-                showBotResponse("Sorry, something went wrong. Please try again.", null, null);
+                showBotResponse("Sorry, something went wrong. Please try again.", null, null, null);
             });
     };
 

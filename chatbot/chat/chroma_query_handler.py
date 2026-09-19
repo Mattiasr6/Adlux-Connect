@@ -24,15 +24,16 @@ def get_query_embedding(query):
 
 
 def retrieve_documents(query, top_k=3):
+    """Devuelve (texto, pregunta_origen) del mejor documento, o (None, None)."""
     try:
         if not client:
             print('Check the client path.. ')
-            return {'documents': []}
+            return None, None
         query_embedding = get_query_embedding(query)
         collection = client.get_collection("hospital_qanda2")
         if not collection:
             print("Collection not found.")
-            return {"documents": []}
+            return None, None
         print('searching for results')
         # results = collection.query(query_embeddings=[query_embedding], n_results=top_k)
         top_k_results = collection.query(query_embeddings=[query_embedding], n_results=top_k)
@@ -55,7 +56,7 @@ def retrieve_documents(query, top_k=3):
         collection = client2.get_collection("hospital_qanda")
         if not collection:
             print("Collection not found.")
-            return {"documents": []}
+            return None, None
         print('searching for results')
         # results = collection.query(query_embeddings=[query_embedding], n_results=top_k)
         top_k_results = collection.query(query_embeddings=[query_embedding], n_results=top_k)
@@ -65,10 +66,11 @@ def retrieve_documents(query, top_k=3):
         print(
             f"Choosing the result {top_k_results['documents'][0][2]}\nEuclidean Similarity score :"
             f" {top_k_results['distances'][0][2]}")
-        return top_k_results['documents'][0][2]
+        meta = top_k_results['metadatas'][0][2]
+        return top_k_results['documents'][0][2], meta.get('question', meta.get('source', ''))
     except Exception as e:
         print(f"Error retrieving documents: {e}")
-        return {"documents": []}
+        return None, None
 
         # start from order the result by descending order of distances.
         # createa a similarity score bar low, med, high.

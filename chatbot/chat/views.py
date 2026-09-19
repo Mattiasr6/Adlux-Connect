@@ -75,8 +75,10 @@ def chatbot(request):
 
         try:
             # Retrieve related documents and generate a response
-            retrieved_documents = retrieve_documents(user_message, top_k=3)
-            generated_response = generate_response(user_message, retrieved_documents)
+            texto, fuente = retrieve_documents(user_message, top_k=3)
+            if texto is None:
+                return JsonResponse({'response': "I couldn't find any relevant documents."})
+            generated_response = generate_response(user_message, texto)
 
             # Store interaction details in the Interaction model
             new_interaction = Interaction(
@@ -91,6 +93,7 @@ def chatbot(request):
                 'response': generated_response,
                 'response_time': str(response_time),
                 'interaction_id': str(new_interaction.interaction_id),
+                'fuente': fuente,
             })
 
         except IndexError:
