@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import gettext as _
 from .models import ChatSession, Interaction
 
 
@@ -19,10 +20,10 @@ class InteractionAdmin(admin.ModelAdmin):
     readonly_fields = ('interaction_id', 'created_at')
     date_hierarchy = 'created_at'
 
-    @admin.display(description='Pregunta')
+    @admin.display(description=_('Question'))
     def pregunta_corta(self, obj):
         return obj.user_message[:60]
 
-    @admin.display(description='Respuesta')
+    @admin.display(description=_('Answer'))
     def respuesta_corta(self, obj):
         return obj.bot_response[:80]

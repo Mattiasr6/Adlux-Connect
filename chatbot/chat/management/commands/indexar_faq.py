@@ -5,6 +5,7 @@ import chromadb
 from chromadb.utils import embedding_functions
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+from django.utils.translation import gettext as _
 from sentence_transformers import SentenceTransformer
 
 MODELO_EMBEDDINGS = 'all-mpnet-base-v2'
@@ -12,11 +13,11 @@ COLECCION = 'hospital_qanda2'
 
 
 class Command(BaseCommand):
-    help = 'Indexa pares Q&A desde un JSON a Chroma. Idempotente: omite ids ya existentes.'
+    help = _('Index Q&A pairs from a JSON file into Chroma. Idempotent: skips existing ids.')
 
     def add_arguments(self, parser):
         parser.add_argument('--archivo', default='chat/data/faq_semilla.json',
-                            help='Ruta al JSON (relativa a BASE_DIR o absoluta).')
+                            help=_('Path to the JSON file (relative to BASE_DIR or absolute).'))
         parser.add_argument('--coleccion', default=COLECCION)
 
     def handle(self, *args, archivo, coleccion, **opciones):
@@ -24,7 +25,7 @@ class Command(BaseCommand):
         if not ruta.is_absolute():
             ruta = Path(settings.BASE_DIR) / ruta
         if not ruta.exists():
-            raise CommandError(f'no existe: {ruta}')
+            raise CommandError(_('missing file: {path}').format(path=ruta))
         pares = json.loads(ruta.read_text(encoding='utf-8'))
 
         persist = str(Path(settings.BASE_DIR) / 'chat' / 'appollo_chatbot_chroma2')
@@ -45,4 +46,5 @@ class Command(BaseCommand):
                     embeddings=[emb])
             nuevos += 1
         self.stdout.write(self.style.SUCCESS(
-            f'{nuevos} nuevos, {len(existentes)} ya estaban. Total en {coleccion}: {col.count()}'))
+            _('{new} new, {existing} already indexed. Total in {collection}: {total}').format(
+                new=nuevos, existing=len(existentes), collection=coleccion, total=col.count())))

@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
+from django.utils.translation import gettext as _
 
 from .models import ChatSession, Interaction
 from .ollama_testing import initialise_model, generate_response
@@ -59,7 +60,7 @@ def chatbot(request):
         user_message = data.get('message', "").strip()
 
         if not user_message:
-            return JsonResponse({'response': 'Please type a message.'})
+            return JsonResponse({'response': _('Please type a message.')})
 
         user_message_received_time = now()
         active_session = check_active_session(request)
@@ -77,7 +78,7 @@ def chatbot(request):
             # Retrieve related documents and generate a response
             texto, fuente = retrieve_documents(user_message, top_k=3)
             if texto is None:
-                return JsonResponse({'response': "I couldn't find any relevant documents."})
+                return JsonResponse({'response': _("I couldn't find any relevant documents.")})
             generated_response = generate_response(user_message, texto)
 
             # Store interaction details in the Interaction model
@@ -97,7 +98,7 @@ def chatbot(request):
             })
 
         except IndexError:
-            return JsonResponse({'response': "I couldn't find any relevant documents."})
+            return JsonResponse({'response': _("I couldn't find any relevant documents.")})
 
     # For GET requests, start a new chat session if none exists
     if not ChatSession.objects.filter(user=request.user, is_active=True).exists():
@@ -122,13 +123,13 @@ def new_chat_isPressed(request):
     if request.method == 'POST':
         print('new chat is pressed///')
         if not request.user.is_authenticated:
-            return JsonResponse({'status': 'error', 'message': 'User is not authenticated.'}, status=403)
+            return JsonResponse({'status': 'error', 'message': _('User is not authenticated.')}, status=403)
 
         # End all active sessions and start a new one
         manage_active_session(request.user)
         return JsonResponse({'status': 'success'})
 
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=400)
+    return JsonResponse({'status': 'error', 'message': _('Invalid request method.')}, status=400)
 
 
 @login_required(login_url='login')
@@ -151,14 +152,14 @@ def get_chat_history(request):
             print(f'requesting chat history for {chat_title}')
 
             if not chat_title:
-                return JsonResponse({'status': 'error', 'message': 'Chat title is required'}, status=400)
+                return JsonResponse({'status': 'error', 'message': _('Chat title is required')}, status=400)
 
             ChatSession.objects.filter(user=request.user, is_active=True).update(is_active=False, ended_at=now())
 
             chat_session = ChatSession.objects.filter(user=request.user, title=chat_title).first()
 
             if not chat_session:
-                return JsonResponse({'status': 'error', 'message': 'No chat session is found'}, status=404)
+                return JsonResponse({'status': 'error', 'message': _('No chat session is found')}, status=404)
 
             chat_session.is_active = True
             chat_session.save()
@@ -175,10 +176,10 @@ def get_chat_history(request):
             )
 
         except json.JSONDecodeError:
-            return JsonResponse({'status': 'error', 'message': 'Invalid JSON format'}, status=400)
+            return JsonResponse({'status': 'error', 'message': _('Invalid JSON format.')}, status=400)
 
     else:
-        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+        return JsonResponse({'status': 'error', 'message': _('Invalid request method.')}, status=405)
 
 
 @login_required(login_url='login')
@@ -188,23 +189,23 @@ def submit_feedback(request):
     sesión puede calificarla (session__user) y el valor va contra lista blanca.
     """
     if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+        return JsonResponse({'status': 'error', 'message': _('Invalid request method.')}, status=405)
 
     try:
         body = json.loads(request.body)
     except json.JSONDecodeError:
-        return JsonResponse({'status': 'error', 'message': 'Invalid JSON format.'}, status=400)
+        return JsonResponse({'status': 'error', 'message': _('Invalid JSON format.')}, status=400)
 
     valor = body.get('feedback')
     if valor not in [1, 2, 3, 4]:
-        return JsonResponse({'status': 'error', 'message': 'Feedback must be 1-4.'}, status=400)
+        return JsonResponse({'status': 'error', 'message': _('Feedback must be 1-4.')}, status=400)
 
     interaccion = Interaction.objects.filter(
         interaction_id=body.get('interaction_id'),
         session__user=request.user,
     ).first()
     if not interaccion:
-        return JsonResponse({'status': 'error', 'message': 'Interaction not found.'}, status=404)
+        return JsonResponse({'status': 'error', 'message': _('Interaction not found.')}, status=404)
 
     interaccion.feedback = valor
     interaccion.save()

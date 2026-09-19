@@ -4,6 +4,7 @@ import chromadb
 from chromadb.utils import embedding_functions
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.utils.translation import gettext as _
 from sentence_transformers import SentenceTransformer
 
 from chat.models import Interaction
@@ -13,11 +14,11 @@ COLECCION = 'hospital_qanda2'
 
 
 class Command(BaseCommand):
-    help = 'Promueve a la FAQ las respuestas con feedback >= umbral. Idempotente.'
+    help = _('Promote highly-rated answers to the FAQ. Idempotent.')
 
     def add_arguments(self, parser):
         parser.add_argument('--umbral', type=int, default=3,
-                            help='Feedback mínimo para promover (default: 3).')
+                            help=_('Minimum feedback to promote (default: 3).'))
 
     def handle(self, *args, umbral, **opciones):
         persist = str(Path(settings.BASE_DIR) / 'chat' / 'appollo_chatbot_chroma2')
@@ -41,4 +42,5 @@ class Command(BaseCommand):
                     embeddings=[emb])
             nuevas += 1
         self.stdout.write(self.style.SUCCESS(
-            f'{nuevas} promovidas (umbral {umbral}). Total en {COLECCION}: {col.count()}'))
+            _('{promoted} promoted (threshold {threshold}). Total in {collection}: {total}').format(
+                promoted=nuevas, threshold=umbral, collection=coleccion, total=col.count())))

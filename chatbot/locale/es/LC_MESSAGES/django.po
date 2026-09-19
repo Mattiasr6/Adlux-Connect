@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-19 15:29+0000\n"
+"POT-Creation-Date: 2026-09-19 15:50+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,84 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: chat/admin.py:23
+msgid "Question"
+msgstr "Pregunta"
+
+#: chat/admin.py:27
+msgid "Answer"
+msgstr "Respuesta"
+
+#: chat/management/commands/indexar_faq.py:16
+msgid ""
+"Index Q&A pairs from a JSON file into Chroma. Idempotent: skips existing ids."
+msgstr "Indexa pares Q&A desde un JSON a Chroma. Idempotente: omite ids ya existentes."
+
+#: chat/management/commands/indexar_faq.py:20
+msgid "Path to the JSON file (relative to BASE_DIR or absolute)."
+msgstr "Ruta al JSON (relativa a BASE_DIR o absoluta)."
+
+#: chat/management/commands/indexar_faq.py:28
+#, python-brace-format
+msgid "missing file: {path}"
+msgstr "no existe: {path}"
+
+#: chat/management/commands/indexar_faq.py:49
+#, python-brace-format
+msgid "{new} new, {existing} already indexed. Total in {collection}: {total}"
+msgstr "{new} nuevos, {existing} ya estaban. Total en {collection}: {total}"
+
+#: chat/management/commands/promover_faq.py:17
+msgid "Promote highly-rated answers to the FAQ. Idempotent."
+msgstr "Promueve a la FAQ las respuestas con feedback alto. Idempotente."
+
+#: chat/management/commands/promover_faq.py:21
+msgid "Minimum feedback to promote (default: 3)."
+msgstr "Feedback mínimo para promover (default: 3)."
+
+#: chat/management/commands/promover_faq.py:45
+#, python-brace-format
+msgid ""
+"{promoted} promoted (threshold {threshold}). Total in {collection}: {total}"
+msgstr "{promoted} promovidas (umbral {threshold}). Total en {collection}: {total}"
+
+#: chat/views.py:63
+msgid "Please type a message."
+msgstr "Escribe un mensaje."
+
+#: chat/views.py:81 chat/views.py:101
+msgid "I couldn't find any relevant documents."
+msgstr "No encontré documentos relevantes."
+
+#: chat/views.py:126
+msgid "User is not authenticated."
+msgstr "Usuario no autenticado."
+
+#: chat/views.py:132 chat/views.py:182 chat/views.py:192
+msgid "Invalid request method."
+msgstr "Método no válido."
+
+#: chat/views.py:155
+msgid "Chat title is required"
+msgstr "Falta el título del chat."
+
+#: chat/views.py:162
+msgid "No chat session is found"
+msgstr "No se encontró la sesión."
+
+#: chat/views.py:179 chat/views.py:197
+msgid "Invalid JSON format."
+msgstr "JSON inválido."
+
+#: chat/views.py:201
+msgid "Feedback must be 1-4."
+msgstr "El feedback debe ser 1-4."
+
+#: chat/views.py:208
+msgid "Interaction not found."
+msgstr "Interacción no encontrada."
+
 #: templates/base.html:32 templates/chatbot2.html:14
 msgid "Logout"
 msgstr "Cerrar sesión"
