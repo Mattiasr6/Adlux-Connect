@@ -4,19 +4,18 @@ from django.core.management.base import BaseCommand
 from django.test import Client
 from django.test.utils import setup_test_environment
 
-# Set fijo: hechos de la base, semillas del proyecto y 2 fuera de alcance
-# (estas últimas prueban si el bot reconoce lo que no sabe).
+# Set HSJD: pares curados + 2 fuera de alcance (prueban honestidad).
 PREGUNTAS = [
-    'where is apollo adlux hospital located?',
-    'what is apollo adlux hospital known for?',
-    'Where does the language model run?',
-    'Which vector database does the project use?',
-    'How are new documents indexed?',
-    'What is Adlux-Connect?',
-    'How can I rate an answer?',
-    'How do I create a user account?',
+    '¿Dónde queda el hospital?',
+    '¿Cómo saco una ficha digital?',
+    '¿Qué es la hoja de referencia?',
+    '¿Cuántas especialidades tienen?',
+    '¿Atienden niños o pediatría?',
+    '¿Atienden con el SUS?',
+    '¿Cuáles son los horarios de visita para internados?',
+    '¿Cuál es el teléfono del hospital?',
     'Who won the 2026 world cup?',
-    'What is the capital of Japan?',
+    'conoces los vectores bidimensionales en c#?',
 ]
 
 
