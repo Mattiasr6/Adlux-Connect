@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load i18n %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'index2.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'chat.css' %}">{% endblock %}
 {% block title %}{% trans "Chat" %} - Adlux-Connect{% endblock %}
 {% block content %}
 {% csrf_token %}
@@ -19,8 +19,8 @@
   </section>
 
   <!-- Columna de chat -->
-  <div class="col-md-9 d-flex flex-column" style="min-height: 70vh;">
-    <div class="chat-container flex-grow-1 overflow-auto border rounded p-3 mb-3" style="max-height: 65vh;"></div>
+  <div class="col-md-9 d-flex flex-column chat-col">
+    <div class="chat-container flex-grow-1 overflow-auto border rounded p-3 mb-3"></div>
 
     <div class="typing-container">
       <div class="input-group">
@@ -124,9 +124,10 @@
             listItem.appendChild(anchor);
             sidebarMenu.appendChild(listItem);
 
-            anchor.addEventListener('click', () => {
+            anchor.addEventListener('click', (e) => {
+                e.preventDefault(); // No ensuciar la URL con #
                 handleMenuItemClick(item); // Send item to the backend when clicked
-            });
+        });
         });
     }
 

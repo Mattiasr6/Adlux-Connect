@@ -1,0 +1,41 @@
+/* Layout del chat (reemplaza index2.css, incompatible con Bootstrap). */
+
+/* Columna de chat */
+.chat-col { min-height: 70vh; }
+
+/* Área de mensajes */
+.chat-container { min-height: 55vh; max-height: 65vh; }
+
+/* Animación "escribiendo..." */
+.typing-animation { display: inline-flex; align-items: center; gap: 6px; padding: 8px 0; }
+.typing-animation .typing-dot {
+  height: 8px; width: 8px; border-radius: 50%;
+  background: currentColor; opacity: .6;
+  animation: chat-dots 1.2s var(--delay, 0s) ease-in-out infinite;
+}
+@keyframes chat-dots {
+  0%, 60%, 100% { transform: translateY(0); opacity: .6; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+
+/* Sidebar */
+.sidebar { display: flex; flex-direction: column; gap: .5rem; }
+.sidebar .menu { margin-bottom: 0; }
+.sidebar.collapsed .menu { display: none; }
+.sidebar .menu.dynamic { max-height: 40vh; overflow-y: auto; }
+.sidebar .menu.fixed a { text-decoration: none; }
+
+/* Entrada visible al scrollear */
+.typing-container {
+  position: sticky; bottom: 0;
+  background: var(--bs-body-bg);
+  padding: .5rem 0;
+}
+
+/* Móvil: sidebar compacto arriba, chat protagonista */
+@media (max-width: 767.98px) {
+  .chat-col { min-height: 0; }
+  .chat-container { min-height: 44vh; max-height: 50vh; }
+  .sidebar-section { margin-bottom: .75rem; }
+  .sidebar .menu.dynamic { max-height: 22vh; }
+}
