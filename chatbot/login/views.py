@@ -23,7 +23,6 @@ def create_login(request):
     if request.POST:
         user_name = request.POST.get('username')
         password = request.POST.get('password')
-        print(f'{user_name = }, {password = }')
         
         if not user_name or not password:
             message = 'Username and Password required..'               # ------------>>> Use front end to handle this...
@@ -46,7 +45,6 @@ def create_signup(request):
         password = request.POST['password']
         email = request.POST['email']
 
-        print(f'{user_name = }, {password = }, {email = }')
 
         check_username_exists(request, user_name)
         check_email_exists(request, email)
