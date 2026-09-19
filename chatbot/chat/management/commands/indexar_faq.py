@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 import chromadb
@@ -9,7 +10,7 @@ from django.utils.translation import gettext as _
 from sentence_transformers import SentenceTransformer
 
 MODELO_EMBEDDINGS = 'all-mpnet-base-v2'
-COLECCION = 'hospital_qanda2'
+COLECCION = os.environ.get('COLECCION_FAQ', 'hospital_qanda2')
 
 
 class Command(BaseCommand):

@@ -1,10 +1,12 @@
+import os
 from pathlib import Path
 
 import chromadb
 from sentence_transformers import SentenceTransformer
 
 MODELO = 'all-mpnet-base-v2'
-COLECCION = 'hospital_qanda2'
+# Colección configurable (ver COLECCION_FAQ); default: datos originales.
+COLECCION = os.environ.get('COLECCION_FAQ', 'hospital_qanda2')
 
 model = None
 client = None
