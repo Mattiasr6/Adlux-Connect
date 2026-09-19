@@ -11,7 +11,7 @@ import json
 
 # Initialize the model and Chroma client
 initialise_model()
-setup_chroma_client()   
+setup_chroma_client()
 
 def check_active_session(request):
     active = ChatSession.objects.filter(user=request.user, is_active=True).first()
@@ -87,7 +87,11 @@ def chatbot(request):
             new_interaction.save()
 
             response_time = now() - user_message_received_time
-            return JsonResponse({'response': generated_response, 'response_time': str(response_time)})
+            return JsonResponse({
+                'response': generated_response,
+                'response_time': str(response_time),
+                'interaction_id': str(new_interaction.interaction_id),
+            })
 
         except IndexError:
             return JsonResponse({'response': "I couldn't find any relevant documents."})
@@ -147,7 +151,7 @@ def get_chat_history(request):
                 return JsonResponse({'status': 'error', 'message': 'Chat title is required'}, status=400)
 
             ChatSession.objects.filter(user=request.user, is_active=True).update(is_active=False, ended_at=now())
-            
+
             chat_session = ChatSession.objects.filter(user=request.user, title=chat_title).first()
 
             if not chat_session:
@@ -166,10 +170,39 @@ def get_chat_history(request):
                     'interactions': interaction_list
                 }
             )
-        
+
         except json.JSONDecodeError:
             return JsonResponse({'status': 'error', 'message': 'Invalid JSON format'}, status=400)
-        
+
     else:
         return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
+
+@login_required(login_url='login')
+def submit_feedback(request):
+    """
+    Guarda la calificación (1-4) de una respuesta. Solo el dueño de la
+    sesión puede calificarla (session__user) y el valor va contra lista blanca.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON format.'}, status=400)
+
+    valor = body.get('feedback')
+    if valor not in [1, 2, 3, 4]:
+        return JsonResponse({'status': 'error', 'message': 'Feedback must be 1-4.'}, status=400)
+
+    interaccion = Interaction.objects.filter(
+        interaction_id=body.get('interaction_id'),
+        session__user=request.user,
+    ).first()
+    if not interaccion:
+        return JsonResponse({'status': 'error', 'message': 'Interaction not found.'}, status=404)
+
+    interaccion.feedback = valor
+    interaccion.save()
+    return JsonResponse({'status': 'success'})

@@ -6,4 +6,5 @@ urlpatterns = [
     path('fetch_sidebar_data', views.fetch_sidebar_data, name='fetch_sidebar_data'),
     path('new_chat', views.new_chat_isPressed, name='new_chat'),
     path('get_chat_history', views.get_chat_history, name='get_chat_history'),
+    path('submit_feedback', views.submit_feedback, name='submit_feedback'),
 ]

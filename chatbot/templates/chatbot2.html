@@ -1,6 +1,4 @@
 {% extends 'base.html' %}
-{% load static %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'index2.css' %}">{% endblock %}
 {% block title %}Chat - Adlux-Connect{% endblock %}
 {% block content %}
 {% csrf_token %}
@@ -95,7 +93,7 @@
                         chatContainer.querySelector(".default-text")?.remove();
                         chatContainer.appendChild(outgoingChatDiv);
                         chatContainer.scrollTo(0, chatContainer.scrollHeight);
-                        showBotResponse(interaction.bot_response)
+            showBotResponse(interaction.bot_response, interaction.interaction_id, interaction.feedback)
                     });
                 } else {
                     console.error("No interactions found.");
@@ -214,19 +212,54 @@
         setTimeout(() => copyBtn.textContent = "copiar", 1000);
     };
 
-    const showBotResponse = (responseText) => {
+    const showBotResponse = (responseText, interactionId, feedback) => {
+        const fid = interactionId || '';
         const html = `<div class="d-flex mb-2">
                         <span class="fs-4 me-2">🤖</span>
                         <div class="card flex-grow-1">
                           <div class="card-body py-2 px-3">
                             <p class="mb-0">${responseText}</p>
                             <button class="btn btn-sm btn-link p-0" onclick="copyResponse(this)">copiar</button>
+                            <div class="btn-group btn-group-sm ms-2" role="group" aria-label="Calificar respuesta" data-feedback-group="${fid}">
+                              <button type="button" class="btn btn-outline-secondary" data-voto="1" title="Mala" onclick="votar('${fid}', 1)">1</button>
+                              <button type="button" class="btn btn-outline-secondary" data-voto="2" title="Regular" onclick="votar('${fid}', 2)">2</button>
+                              <button type="button" class="btn btn-outline-secondary" data-voto="3" title="Buena" onclick="votar('${fid}', 3)">3</button>
+                              <button type="button" class="btn btn-outline-secondary" data-voto="4" title="Excelente" onclick="votar('${fid}', 4)">4</button>
+                            </div>
                           </div>
                         </div>
                       </div>`;
         const botResponseDiv = createChatElement(html, "incoming");
         chatContainer.appendChild(botResponseDiv);
         chatContainer.scrollTo(0, chatContainer.scrollHeight);
+        if (fid) paintFeedback(fid, feedback || 0);
+    };
+
+    const votar = (interactionId, valor) => {
+        if (!interactionId) return;
+        fetch('submit_feedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({interaction_id: interactionId, feedback: valor})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') paintFeedback(interactionId, valor);
+        })
+        .catch(error => console.error('Error:', error));
+    };
+
+    const paintFeedback = (interactionId, valor) => {
+        const grupo = document.querySelector(`[data-feedback-group="${interactionId}"]`);
+        if (!grupo) return;
+        grupo.querySelectorAll('button').forEach(b => {
+            const activo = parseInt(b.dataset.voto, 10) === valor;
+            b.classList.toggle('btn-primary', activo);
+            b.classList.toggle('btn-outline-secondary', !activo);
+        });
     };
 
     const showTypingAnimation = () => {
@@ -293,12 +326,12 @@
                 typingDiv?.remove();
 
                 // Show the bot's response
-                showBotResponse(data.response);
+                showBotResponse(data.response, data.interaction_id, null);
             })
             .catch(error => {
                 typingDiv?.remove();
                 console.error('Error:', error);
-                showBotResponse("Sorry, something went wrong. Please try again.");
+                showBotResponse("Sorry, something went wrong. Please try again.", null, null);
             });
     };
 
