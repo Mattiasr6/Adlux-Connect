@@ -6,6 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Adlux-Connect{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}">
+  <script>
+    // Aplica el tema guardado ANTES del primer pintado (evita flash blanco).
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('adlux-theme'); } catch (e) {}
+      document.documentElement.setAttribute('data-bs-theme', saved || 'light');
+    })();
+  </script>
 </head>
 <body>
   <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
@@ -26,6 +34,7 @@
           {% endif %}
         </ul>
       </div>
+      <button id="theme-toggle" class="btn btn-outline-light ms-2" aria-label="Cambiar entre modo claro y oscuro">🌙</button>
     </div>
   </nav>
 
@@ -34,6 +43,23 @@
   </main>
 
   <script src="{% static 'vendor/bootstrap.bundle.min.js' %}"></script>
+  <script>
+    // Toggle claro/oscuro con persistencia en localStorage.
+    (function () {
+      var btn = document.getElementById('theme-toggle');
+      function paint() {
+        var dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        btn.textContent = dark ? '☀️' : '🌙';
+      }
+      btn.addEventListener('click', function () {
+        var next = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-bs-theme', next);
+        try { localStorage.setItem('adlux-theme', next); } catch (e) {}
+        paint();
+      });
+      paint();
+    })();
+  </script>
   {% block scripts %}{% endblock %}
 </body>
 </html>
